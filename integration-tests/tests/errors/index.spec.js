@@ -21,88 +21,142 @@ module.exports = {
     browser.globals.clearReceivedSpans();
   },
   'DOM resource 4xx': async function(browser) {
-    await browser.url(browser.globals.getUrl('/errors/views/resource-4xx.ejs'));
+    const urls = [
+      browser.globals.getUrl('/errors/views/resource-4xx.ejs'),
+      browser.globals.getUrl('/errors/views/resource-4xx-inline.ejs'),
+    ];
 
-    const errorSpan = await browser.globals.findSpan(s => s.name === 'eventListener.error');
-    await browser.assert.ok(!!errorSpan, 'Checking if error span was found.');
+    for (const url of urls) {
+      await browser.url(url);
 
-    const tags = errorSpan.tags;
-    await browser.assert.strictEqual(tags['component'], 'error');
-    await browser.assert.strictEqual(tags['error.type'], 'error');
-    await browser.assert.strictEqual(tags['target_element'], 'IMG');
-    await browser.assert.strictEqual(tags['target_xpath'], '//html/body/img');
-    await browser.assert.ok(tags['target_src'].endsWith('/nonexistent.png'), `Checking target_src: ${tags['target_src']}`);
+      const errorSpan = await browser.globals.findSpan(s => s.name === 'eventListener.error');
+      await browser.assert.ok(!!errorSpan, 'Checking if error span was found.');
+
+      const tags = errorSpan.tags;
+      await browser.assert.strictEqual(tags['component'], 'error');
+      await browser.assert.strictEqual(tags['error.type'], 'error');
+      await browser.assert.strictEqual(tags['target_element'], 'IMG');
+      await browser.assert.strictEqual(tags['target_xpath'], '//html/body/img');
+      await browser.assert.ok(tags['target_src'].endsWith('/nonexistent.png'), `Checking target_src: ${tags['target_src']}`);
+
+      if (url.includes('inline')) {
+        await browser.assert.strictEqual(tags['inlineErrorReporter'], 'true');
+      }
+
+      browser.globals.clearReceivedSpans();
+    }
   },
   'JS syntax error': async function(browser) {
-    await browser.url(browser.globals.getUrl('/errors/views/js-syntax-error.ejs'));
+    const urls = [
+      browser.globals.getUrl('/errors/views/js-syntax-error.ejs'),
+      browser.globals.getUrl('/errors/views/js-syntax-error-inline.ejs'),
+    ];
 
-    const errorSpan = await browser.globals.findSpan(s => s.name === 'onerror');
-    await browser.assert.ok(!!errorSpan, 'Checking presence of error span.');
+    for (const url of urls) {
+      await browser.url(url);
 
-    const tags = errorSpan.tags;
-    await browser.assert.strictEqual(tags['component'], 'error');
-    await browser.assert.strictEqual(tags['error'], 'true');
-    await browser.assert.strictEqual(tags['error.object'], isBrowser(browser, 'ie') ? 'String' : 'SyntaxError');
+      const errorSpan = await browser.globals.findSpan(s => s.name === 'onerror');
+      await browser.assert.ok(!!errorSpan, 'Checking presence of error span.');
 
-    switch (browser.options.desiredCapabilities.browserName.toLowerCase()) {
-    case 'chrome':
-      await browser.assert.strictEqual(tags['error.message'], 'Unexpected token \';\'');
-      break;
-    case 'firefox':
-      await browser.assert.strictEqual(tags['error.message'], 'expected expression, got \';\'');
-      break;
-    case 'safari':
-      await browser.assert.strictEqual(tags['error.message'], 'Unexpected token \';\'');
-      break;
-    case 'ie':
-      await browser.assert.strictEqual(tags['error.message'], 'Syntax error');
-      break;
+      const tags = errorSpan.tags;
+      await browser.assert.strictEqual(tags['component'], 'error');
+      await browser.assert.strictEqual(tags['error'], 'true');
+      await browser.assert.strictEqual(tags['error.object'], isBrowser(browser, 'ie') ? 'String' : 'SyntaxError');
+
+      switch (browser.options.desiredCapabilities.browserName.toLowerCase()) {
+      case 'chrome':
+        await browser.assert.strictEqual(tags['error.message'], 'Unexpected token \';\'');
+        break;
+      case 'firefox':
+        await browser.assert.strictEqual(tags['error.message'], 'expected expression, got \';\'');
+        break;
+      case 'safari':
+        await browser.assert.strictEqual(tags['error.message'], 'Unexpected token \';\'');
+        break;
+      case 'ie':
+        await browser.assert.strictEqual(tags['error.message'], 'Syntax error');
+        break;
+      }
+
+      if (url.includes('inline')) {
+        await browser.assert.strictEqual(tags['inlineErrorReporter'], 'true');
+      }
+
+      browser.globals.clearReceivedSpans();
     }
   },
   'JS unhandled error': async function(browser) {
-    await browser.url(browser.globals.getUrl('/errors/views/unhandled-error.ejs'));
+    const urls = [
+      browser.globals.getUrl('/errors/views/unhandled-error.ejs'),
+      browser.globals.getUrl('/errors/views/unhandled-error-inline.ejs'),
+    ];
 
-    const errorSpan = await browser.globals.findSpan(s => s.name === 'onerror');
-    await browser.assert.ok(errorSpan, 'Checking presence of error span.');
+    for (const url of urls) {
+      await browser.url(url);
 
-    const tags = errorSpan.tags;
-    await browser.assert.strictEqual(tags['component'], 'error');
-    await browser.assert.strictEqual(tags['error'], 'true');
-    await browser.assert.strictEqual(tags['error.object'], 'TypeError');
+      const errorSpan = await browser.globals.findSpan(s => s.name === 'onerror');
+      await browser.assert.ok(errorSpan, 'Checking presence of error span.');
 
-    switch (browser.options.desiredCapabilities.browserName.toLowerCase()) {
-    case 'chrome':
-      await browser.assert.strictEqual(tags['error.message'], 'Cannot set property \'prop1\' of null');
-      break;
-    case 'firefox':
-      await browser.assert.strictEqual(tags['error.message'], 'test is null');
-      break;
-    case 'safari':
-      await browser.assert.strictEqual(tags['error.message'], 'null is not an object (evaluating \'test.prop1 = true\')');
-      break;
-    case 'ie':
-      await browser.assert.strictEqual(tags['error.message'], 'Unable to set property \'prop1\' of undefined or null reference');
-      break;
+      const tags = errorSpan.tags;
+      await browser.assert.strictEqual(tags['component'], 'error');
+      await browser.assert.strictEqual(tags['error'], 'true');
+      await browser.assert.strictEqual(tags['error.type'], undefined);
+      await browser.assert.strictEqual(tags['error.object'], 'TypeError');
+
+      switch (browser.options.desiredCapabilities.browserName.toLowerCase()) {
+      case 'chrome':
+        await browser.assert.strictEqual(tags['error.message'], 'Cannot set property \'prop1\' of null');
+        break;
+      case 'firefox':
+        await browser.assert.strictEqual(tags['error.message'], 'test is null');
+        break;
+      case 'safari':
+        await browser.assert.strictEqual(tags['error.message'], 'null is not an object (evaluating \'test.prop1 = true\')');
+        break;
+      case 'ie':
+        await browser.assert.strictEqual(tags['error.message'], 'Unable to set property \'prop1\' of undefined or null reference');
+        break;
+      }
+
+      if (url.includes('inline')) {
+        await browser.assert.strictEqual(tags['inlineErrorReporter'], 'true');
+      }
+
+      browser.globals.clearReceivedSpans();
     }
   },
   'unhandled promise rejection': async function(browser) {
     if (isBrowser(browser, 'ie')) {
       return; // No native promise
     }
-    await browser.url(browser.globals.getUrl('/errors/views/unhandled-rejection.ejs'));
 
-    const errorSpan = await browser.globals.findSpan(s => s.name === 'unhandledrejection');
-    await browser.assert.ok(!!errorSpan, 'Checking presence of error span.');
+    const urls = [
+      browser.globals.getUrl('/errors/views/unhandled-rejection.ejs'),
+      browser.globals.getUrl('/errors/views/unhandled-rejection-inline.ejs'),
+    ];
 
-    const tags = errorSpan.tags;
-    await browser.assert.strictEqual(tags['component'], 'error');
-    await browser.assert.strictEqual(tags['error'], 'true');
-    await browser.assert.strictEqual(tags['error.object'], 'String');
-    await browser.assert.strictEqual(tags['error.message'], 'rejection-value');
+    for (const url of urls) {
+      await browser.url(url);
+
+      const errorSpan = await browser.globals.findSpan(s => s.name === 'unhandledrejection');
+      await browser.assert.ok(!!errorSpan, 'Checking presence of error span.');
+
+      const tags = errorSpan.tags;
+      await browser.assert.strictEqual(tags['component'], 'error');
+      await browser.assert.strictEqual(tags['error'], 'true');
+      await browser.assert.strictEqual(tags['error.object'], 'String');
+      await browser.assert.strictEqual(tags['error.message'], 'rejection-value');
+
+      if (url.includes('inline')) {
+        await browser.assert.strictEqual(tags['inlineErrorReporter'], 'true');
+      }
+
+      browser.globals.clearReceivedSpans();
+    }
   },
   'manual console.error': async function(browser) {
     const browserName = browser.options.desiredCapabilities.browserName.toLowerCase();
-    
+
     const url = browser.globals.getUrl('/errors/views/console-error.ejs');
     await browser.url(url);
 
@@ -134,7 +188,7 @@ module.exports = {
   },
   'SplunkRum.error': async function(browser) {
     const browserName = browser.options.desiredCapabilities.browserName.toLowerCase();
-    
+
     const url = browser.globals.getUrl('/errors/views/splunkrum-error.ejs');
     await browser.url(url);
 

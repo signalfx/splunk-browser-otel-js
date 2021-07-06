@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Errors test</title>
+  <%- renderInlineAgent() %>
+  <script id="scenario">
+    var test = null;
+    test.prop1 = true;
+  </script>
+</head>
+<body>
+  <h1>Unhandled error</h1>
+  <pre id="scenarioDisplay"></pre>
+  <script>scenarioDisplay.innerHTML = scenario.innerHTML;</script>
+  <%- renderAgent({}) %>
+</body>
+</html>

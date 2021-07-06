@@ -120,8 +120,11 @@ module.exports = {
       }
     },
     {
-      'files': ['integration-tests/**/*.js'],
-
+      'files': [
+        'integration-tests/**/*.js',
+        'utils/**/*.js',
+        'karma.conf.js'
+      ],
       'env': {
         'node': true,
         'browser': true,

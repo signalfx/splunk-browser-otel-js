@@ -20,7 +20,7 @@ const rollupPolyfills = require('rollup-plugin-node-polyfills');
 const typescript = require('@rollup/plugin-typescript');
 
 const {
-  nodeResolvePlugin, commonjsPlugin,
+  nodeResolvePlugin, commonjsPlugin, replacePlugin,
 } = require('./rollup.shared');
 
 process.env.CHROME_BIN = require('puppeteer').executablePath();
@@ -107,6 +107,7 @@ module.exports = function (config) {
     rollupPreprocessor: {
       plugins: [
         json(),
+        replacePlugin,
         nodeResolvePlugin,
         commonjsPlugin,
         typescript({ tsconfig: './tsconfig.test.json' }),

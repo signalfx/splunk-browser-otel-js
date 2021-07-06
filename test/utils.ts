@@ -46,3 +46,10 @@ export function initWithDefaultConfig(capturer: SpanCapturer, additionalOptions 
 export function deinit(): void {
   SplunkRum.deinit();
 }
+
+export const recurAndThrow = function recurAndThrow(i: number): void {
+  if (i === 0) {
+    throw new Error('bad thing');
+  }
+  recurAndThrow(i - 1);
+};

@@ -17,6 +17,8 @@ limitations under the License.
 
 import 'mocha';
 
+import '../src/inlineErrorReporter';
+
 // Manually maintain this list, as old webpack require-based mechanism isn't working under rollup
 import './init.test';
 import './servertiming.test';

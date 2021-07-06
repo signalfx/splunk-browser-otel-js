@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Errors test</title>
+  <%- renderInlineAgent() %>
+  <script id="scenario">
+    Promise.reject('rejection-value');
+  </script>
+</head>
+<body>
+  <h1>Unhandled rejection</h1>
+
+  <!-- saturate sockets to ensure that promise rejects before agent loads -->
+  <img src="/utils/devServer/assets/splunk-black.png?buster=101" />
+  <img src="/utils/devServer/assets/splunk-black.png?buster=102" />
+  <img src="/utils/devServer/assets/splunk-black.png?buster=103" />
+  <img src="/utils/devServer/assets/splunk-black.png?buster=104" />
+  <img src="/utils/devServer/assets/splunk-black.png?buster=105" />
+  <img src="/utils/devServer/assets/splunk-black.png?buster=106" />
+
+  <%- renderAgent({}) %>
+</body>
+</html>

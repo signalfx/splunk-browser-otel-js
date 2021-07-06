@@ -47,6 +47,7 @@ import {
   InternalEventTarget,
   SplunkOtelWebEventTarget,
 } from './EventTarget';
+import { VERSION } from './version';
 import { ContextManagerConfig, SplunkContextManager } from './SplunkContextManager';
 
 export * from './SplunkExporter';
@@ -199,6 +200,7 @@ interface SplunkOtelWebType extends SplunkOtelWebEventTarget {
   DEFAULT_AUTO_INSTRUMENTED_EVENTS: UserInteractionEventsConfig;
 
   readonly inited: boolean;
+  readonly version: string;
 }
 
 let inited = false;
@@ -211,6 +213,10 @@ const SplunkRum: SplunkOtelWebType = {
 
   get inited(): boolean {
     return inited;
+  },
+
+  get version() {
+    return VERSION;
   },
 
   _internalInit: function (options: SplunkOtelWebConfigInternal) {

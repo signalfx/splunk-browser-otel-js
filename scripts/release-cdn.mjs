@@ -21,6 +21,7 @@ import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { CloudFrontClient, CreateInvalidationCommand } from "@aws-sdk/client-cloudfront";
 import fetch from 'node-fetch';
 import { request } from '@octokit/request';
+import packageJson from '../package.json';
 
 const OWNER = 'signalfx';
 const REPO = 'splunk-otel-js-browser';
@@ -49,13 +50,8 @@ const requestWithAuth = request.defaults({
   },
 });
 
-const { data: releases, status } = await requestWithAuth(`GET /repos/${OWNER}/${REPO}/releases`);
-if (status >= 400) {
-  throw new Error('There was an error while trying to fetch the list of releases.');
-}
-
-const latestRelease = releases[0];
-if (!latestRelease) {
+const { data: latestRelease, status } = await requestWithAuth(`GET /repos/${OWNER}/${REPO}/releases/tags/v${packageJson.version}`);
+if (status >= 400 || !latestRelease) {
   throw new Error('Latest release not found.');
 }
 console.log(`I have found the latest version to be: ${latestRelease.tag_name} named "${latestRelease.name}."`);
@@ -78,7 +74,7 @@ const cdnLinks = ['\n## CDN'];
 for (const asset of assets) {
   console.log(`\t- ${asset.name}`);
   console.log(`\t\t- fetching from ${asset.browser_download_url}.`);
-  
+
   const response = await fetch(asset.browser_download_url);
   const assetBuffer = await response.buffer();
   console.log(`\t\t- fetched`);
@@ -108,8 +104,20 @@ for (const asset of assets) {
       if (!isDryRun) {
         cdnLinks.push(snippet);
       } else {
+        console.log(`\t\t\t\t- script below would be added to the release description`);
         console.log(snippet);
-        console.log(`\t\t\t\t- above would be added to the release description`);
+      }
+    }
+
+    if (asset.name.endsWith('splunk-otel-web-inline.js')) {
+      console.log(`\t\t\t\t- generating inline snippet`);
+
+      const snippet = generateInlineScriptSnippet({ inlineScriptContent: assetBuffer.toString('utf-8') });
+      if (!isDryRun) {
+        cdnLinks.push(snippet);
+      } else {
+        console.log(`\t\t\t\t- script below would be added to the release description`);
+        console.log(snippet);
       }
     }
   }
@@ -163,7 +171,7 @@ async function uploadToS3(key, buffer, { contentType }) {
   return await s3Client.send(new PutObjectCommand({
     Body: buffer,
     Bucket: CDN_BUCKET_NAME,
-    Key: `cdn/${key}`,
+    Key: key,
     ACL: 'public-read',
     ContentType: contentType,
     CacheControl: 'max-age=3600',
@@ -188,5 +196,14 @@ function generateScriptSnippet({ version, isAutoUpdating, publicUrl, integrityVa
   }
   lines.push('```\n');
 
+  return lines.join('\n');
+}
+
+function generateInlineScriptSnippet({ inlineScriptContent }) {
+  const lines = [];
+  lines.push(`### Inlined snippet version ${packageJson.splunkOtelWeb.inlineVersion}`);
+  lines.push('```html');
+  lines.push(`<script>${inlineScriptContent}</script>`);
+  lines.push('```');
   return lines.join('\n');
 }

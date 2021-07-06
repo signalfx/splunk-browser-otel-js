@@ -122,5 +122,8 @@
     "typescript": "^4.2.4",
     "ws": "^7.4.5",
     "zone.js": "^0.11.4"
+  },
+  "splunkOtelWeb": {
+    "inlineVersion": "0.1.0"
   }
 }

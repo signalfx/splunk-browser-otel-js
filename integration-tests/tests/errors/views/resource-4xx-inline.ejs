@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Errors test</title>
+  <%- renderInlineAgent() %>
+</head>
+<body>
+	<h1>Dom parsing error simulation</h1>
+	<img src="/nonexistent.png" />
+
+	<!-- saturate sockets to ensure that nonexistent.png loads first -->
+	<img src="/utils/devServer/assets/splunk-black.png?buster=1" />
+	<img src="/utils/devServer/assets/splunk-black.png?buster=2" />
+	<img src="/utils/devServer/assets/splunk-black.png?buster=3" />
+	<img src="/utils/devServer/assets/splunk-black.png?buster=4" />
+	<img src="/utils/devServer/assets/splunk-black.png?buster=5" />
+	<img src="/utils/devServer/assets/splunk-black.png?buster=6" />
+
+  <%- renderAgent({allowInsecureBeacon: true}) %>
+</body>
+</html>

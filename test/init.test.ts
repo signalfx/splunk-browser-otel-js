@@ -292,47 +292,9 @@ describe('test error', () => {
       const span = capturer.spans[capturer.spans.length - 1];
       assert.strictEqual(span.attributes.component, 'error');
       assert.strictEqual(span.name, 'onerror');
-      assert.ok((span.attributes['error.stack'] as string).includes('callChain'));
-      assert.ok((span.attributes['error.stack'] as string).includes('reportError'));
-      assert.ok((span.attributes['error.message'] as string).includes('war room'));
-      done();
-    }, 100);
-  });
-});
-
-function recurAndThrow(i) {
-  if (i === 0) {
-    throw new Error('bad thing');
-  }
-  recurAndThrow(i-1);
-}
-
-describe('test stack length', () => {
-  const capturer = new SpanCapturer();
-  beforeEach(() => {
-    initWithDefaultConfig(capturer);
-  });
-  afterEach(() => {
-    deinit();
-  });
-
-  it('should limit length of stack', (done) => {
-    try {
-      recurAndThrow(50);
-    } catch (e) {
-      try {
-        SplunkRum.error('something happened: ', e); // try out the API
-      } catch (e2) {
-        // swallow
-      }
-    }
-    setTimeout(() => {
-      const errorSpan = capturer.spans.find(span => span.attributes.component === 'error');
-      assert.ok(errorSpan);
-      assert.ok((errorSpan.attributes['error.stack'] as string).includes('recurAndThrow'));
-      assert.ok((errorSpan.attributes['error.stack'] as string).length <= 4096);
-      assert.ok((errorSpan.attributes['error.message'] as string).includes('something'));
-      assert.ok((errorSpan.attributes['error.message'] as string).includes('bad thing'));
+      expect(span.attributes['error.stack']).to.match(/callChain/);
+      expect(span.attributes['error.stack']).to.match(/reportError/);
+      expect(span.attributes['error.message']).to.match(/war room/);
       done();
     }, 100);
   });
@@ -356,10 +318,10 @@ describe('test unhandled promise rejection', () => {
     });
     setTimeout(() => {
       const errorSpan = capturer.spans.find(span => span.attributes.component === 'error');
-      assert.ok(errorSpan);
-      assert.ok(errorSpan.attributes.error);
-      assert.ok((errorSpan.attributes['error.stack'] as string).includes('throwBacon'));
-      assert.ok((errorSpan.attributes['error.message'] as string).includes('bacon'));
+      expect(errorSpan).to.exist;
+      expect(errorSpan.attributes.error).to.be.true;
+      expect(errorSpan.attributes['error.stack']).to.match(/throwBacon/);
+      expect(errorSpan.attributes['error.message']).to.match(/bacon/);
       done();
     }, 100);
   });
@@ -398,11 +360,11 @@ describe('test unloaded img', () => {
     capturer.clear();
 
     const img = document.createElement('img');
-    img.src = location.href+'/IAlwaysWantToUseVeryVerboseDescriptionsWhenIHaveToEnsureSomethingDoesNotExist.jpg';
+    img.src = location.href + '/IAlwaysWantToUseVeryVerboseDescriptionsWhenIHaveToEnsureSomethingDoesNotExist.jpg';
     document.body.appendChild(img);
     setTimeout(() => {
-      const span = capturer.spans.find( s => s.attributes.component === 'error');
-      assert.ok(span);
+      const span = capturer.spans.find(s => s.attributes.component === 'error');
+      expect(span).to.exist;
       assert.strictEqual(span.name, 'eventListener.error');
       assert.ok((span.attributes.target_src as string).endsWith('DoesNotExist.jpg'));
 

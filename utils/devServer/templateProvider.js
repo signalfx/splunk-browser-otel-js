@@ -124,6 +124,11 @@ exports.registerTemplateProvider = ({ app, addHeaders, enableHttps }) => {
             options: JSON.stringify(options)
           });
         },
+        renderInlineAgent() {
+          const snippetPath = path.resolve(__dirname, '..', '..', 'dist', 'artifacts', 'splunk-otel-web-inline.js');
+          const script = fs.readFileSync(snippetPath);
+          return `<script>${script.toString('utf-8')}</script>`;
+        },
       });
     }
     return next();

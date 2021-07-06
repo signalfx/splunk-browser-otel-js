@@ -4,7 +4,7 @@ const { nodeResolve } = require('@rollup/plugin-node-resolve');
 const { babel } = require('@rollup/plugin-babel');
 const commonjs = require('@rollup/plugin-commonjs');
 
-module.exports.babelPlugin = babel({ 
+module.exports.babelPlugin = babel({
   babelHelpers: 'runtime',
   extensions: ['.js', '.es6', '.es', 'mjs', '.ts']
 });

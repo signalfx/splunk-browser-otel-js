@@ -14,10 +14,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+import { VERSION } from './version';
+
 if( typeof Symbol !== 'function') {
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
   const noop = function(){};
   window.SplunkRum = {
     DEFAULT_AUTO_INSTRUMENTED_EVENTS: {},
+    version: VERSION,
     init: noop,
     inited: false,
     error: noop,
