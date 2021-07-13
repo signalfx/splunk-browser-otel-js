@@ -104,7 +104,7 @@
     "karma-rollup-preprocessor": "7.0.7",
     "karma-spec-reporter": "^0.0.32",
     "karma-websocket-server": "^1.0.0",
-    "lighthouse": "^7.4.0",
+    "lighthouse": "^8.0.0",
     "markdownlint-cli": "^0.27.1",
     "mocha": "^8.4.0",
     "nightwatch": "1.6.4",
